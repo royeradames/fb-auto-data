@@ -1,0 +1,6 @@
+# modules
+node_modules
+# env variables
+.env
+#facebook data
+facebook-royeradames.zip
