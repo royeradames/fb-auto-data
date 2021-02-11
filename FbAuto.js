@@ -1,3 +1,4 @@
+require('dotenv').config()
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 
@@ -59,7 +60,7 @@ const fs = require('fs');
 
 
     console.log("got data")
-    await page.screenshot({path: 'finish.png'});
+    await page.screenshot({path: '/imgs/finish.png'});
 
     await browser.close();
 
@@ -67,9 +68,9 @@ const fs = require('fs');
 
 async function loginToFacebook(page){
     await page.goto('https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings');
-    await page.type("#email", process.env.ID)
+    await page.type("#email", "royeraadames@gmail.com")
     await page.type("#pass",  process.env.PASS)
-    await page.screenshot({path: 'login.png'});
+    await page.screenshot({path: '/imgs/login.png'});
     await Promise.all([
         page.waitForSelector("button[disabled=false]"),
         page.click('button[type=submit]'),

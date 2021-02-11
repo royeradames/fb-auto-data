@@ -6,3 +6,5 @@ node_modules
 facebook-royeradames.zip
 #html
 message.html
+#ignore images
+/imgs
