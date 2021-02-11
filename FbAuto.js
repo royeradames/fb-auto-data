@@ -68,7 +68,7 @@ const fs = require('fs');
 
 async function loginToFacebook(page){
     await page.goto('https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings');
-    await page.type("#email", "royeraadames@gmail.com")
+    await page.type("#email", process.env.ID)
     await page.type("#pass",  process.env.PASS)
     await page.screenshot({path: '/imgs/login.png'});
     await Promise.all([
