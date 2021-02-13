@@ -14,15 +14,7 @@ const puppeteer = require('puppeteer');
     
     await loginToFacebook(page)
     console.log("finishing loging in")
-    
 
-    // // save the html page file
-    // fs.writeFile('message.html', await page.content(), (err) => {
-    //     if (err) throw err;
-    //     console.log('The file has been saved!');
-    // })
-
-    
     /*
         button[disabled=false] does not work reliably on the 1 loadup
         the document it's loaded by an iframe
@@ -34,50 +26,36 @@ const puppeteer = require('puppeteer');
         id: 16D2888A7EB28013F9D3559662EDD2EE
         I don't see the contentDocument on it. console.log(await page.mainFrame().childFrames())
     */
-        // select iframe
-    await page.evaluate(() => {
-        // click the create file
-        const createFile =  document.querySelector("iframe").contentDocument.querySelector("button")
-        createFile.click()
-        debugger
-        //wait for download to be finish
+    // click the create file
+    await page.click('button')
+    debug(page)
+
+    //Todo: wait for download to be finish
         // refresh every 1 minute until Pending becomes download
-
+    await page.click('li:last-child')
+    console.log("go to available copies")
+    debug(page)
         
-    });
+    //download data
+    await page.click('button[type=submit]')
+    console.log("click download button")
+    debug(page)
 
-    await page.evaluate(() => {
-        //click available copies
-        const availableCopies =  document.querySelector("iframe").contentDocument.querySelector("li:last-child")
-        availableCopies.click()
-        debugger
+
+    // if ask then re-enter your password
+    if(page.$selector("input[type=password]")){
         
-    })
-    await page.evaluate(() => {
-        //download data
-        const downloadButton = document.querySelector("iframe").contentDocument.querySelector("button[type=submit]") 
-        downloadButton.click()
-        debugger
-    })
-    await page.evaluate(() => {
+        console.log("renter password")
+        debug(page)
 
-        // if ask then re-enter your password
-        console.log("re-enter your password button is found yes or no: ", document.querySelector("input[type=password]") )
+        // element = document.querySelector("input[type=password]")
+        await page.type('input[type=password]', process.env.PASS)
 
-        if(document.querySelector("input[type=password]")){
-            debugger
+        // submit password
+        // document.querySelector("td button[type=submit]")
+        await page.click('td button[type=submit]')
+    }
 
-            // element = document.querySelector("input[type=password]")
-            const retypePassword = document.querySelector("input[type=password]")
-            retypePassword.type(process.env.PASS)
-
-            // submit password
-            // document.querySelector("td button[type=submit]")
-            const submitPassword = document.querySelector("td button[type=submit]")
-            submitPassword.click()
-        }
-
-    })
 
     // wait until facebook notifies you that your data is ready.
         /*
@@ -103,12 +81,20 @@ const puppeteer = require('puppeteer');
 
 async function loginToFacebook(page){
     await page.goto('https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings');
+    // iframe link https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ4BCb8-akQALIDVKAA&ctarget=https%3A%2F%2Fwww.facebook.com
+    // normal link provided by facebook https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings
     await page.type("#email", process.env.ID)
     await page.type("#pass",  process.env.PASS)
     await Promise.all([
-    page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
         page.click('button[type=submit]'),
+    ]);
 
+    // go to the iframe it self
+    // now iframe content can be access normally. 
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.goto('https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ4BCb8-akQALIDVKAA&ctarget=https%3A%2F%2Fwww.facebook.com')
     ]);
 }
 async function facebookLoginCases() {
@@ -136,4 +122,11 @@ async function facebookLoginCases() {
     console.log(await page.content());
     await page.screenshot({path: 'screenshot.png'});
     console.log("It ran")
+}
+
+async function debug(page){
+    await page.evaluate(() => {
+        // add chrome debugger stopping point when chrome inpector is open 
+        debugger
+    })
 }
