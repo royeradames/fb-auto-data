@@ -16,17 +16,23 @@ const puppeteer = require("puppeteer");
     console.log("finishing loging in")
 
     // click the create file
-    await page.click("button")
+    await Promise.all([
+        page.waitForSelector("[role=heading]"),
+        page.click("button"),
+    ]);
 
     // refresh every 5 minute until "[role=heading]" is no more 
     // then Pending becomes download
     // facebook does not refreshes the page after the content is ready so you have to do it.
-    const copyingDataNotice = await page.$("[role=heading]")
-    while(copyingDataNotice){
-        await page.reload( {timeout: 300000});
+    
+    while(await page.$("[role=heading]")){
+        console.log("going to start waiting for 5 min")
+        await page.waitForTimeout(300000)
+        console.log("going to reload")
+        await page.reload();
     }
     debug(page)
-    console.log("finish waiting for data0")
+    console.log("finish waiting for data")
 
     // go to available copies to download the data
     const avaliableCopiesTab = "li:last-child" 
@@ -35,6 +41,7 @@ const puppeteer = require("puppeteer");
     
     
     //download data and wait for it
+    // todo: fix download button not working. I will need to work it using the nested frame.
     const downloadButton = "button[type=submit]"
     await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle0" }),
