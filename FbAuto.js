@@ -1,6 +1,6 @@
-require('dotenv').config()
-const puppeteer = require('puppeteer');
-// const fs = require('fs');
+require("dotenv").config()
+const puppeteer = require("puppeteer");
+// const fs = require("fs");
 
 (async () => {
     //todo: set downlaod to project folder
@@ -17,43 +17,65 @@ const puppeteer = require('puppeteer');
 
     /*
         button[disabled=false] does not work reliably on the 1 loadup
-        the document it's loaded by an iframe
+        the document it"s loaded by an iframe
         document.querySelector("iframe").contentWindow.document.querySelector("button")
 
         notes: 
         there are 4 child frames total
-        the 1 frame is my target frame. The other 3 frames are it's child frame.
+        the 1 frame is my target frame. The other 3 frames are it"s child frame.
         id: 16D2888A7EB28013F9D3559662EDD2EE
-        I don't see the contentDocument on it. console.log(await page.mainFrame().childFrames())
+        I don"t see the contentDocument on it. console.log(await page.mainFrame().childFrames())
     */
     // click the create file
-    await page.click('button')
-    debug(page)
+    await page.click("button")
 
-    //Todo: wait for download to be finish
-        // refresh every 1 minute until Pending becomes download
-    await page.click('li:last-child')
+    // refresh every 5 minute until "[role=heading]" is no more 
+    // then Pending becomes download
+    // facebook does not refreshes the page after the content is ready so you have to do it.
+    const copyingDataNotice = await page.$("[role=heading]")
+    while(copyingDataNotice){
+        await page.reload( {timeout: 300000});
+    }
+    
+    // go to available copies to download the data
+    const avaliableCopiesTab = "li:last-child" 
+    await page.click(avaliableCopiesTab)
     console.log("go to available copies")
-    debug(page)
-        
+    
+    // set download location to local project path
+    await page._client.send("Page.setDownloadBehavior", {
+        behavior: "allow",
+        downloadPath: "./downloads",
+    });
+
     //download data
-    await page.click('button[type=submit]')
+    const downloadButton = "button[type=submit]"
+    await page.click(downloadButton)
     console.log("click download button")
     debug(page)
 
+    //wait for data
+    /* 
+        could also do a while loop that reloads the page every set amount fo time, until you see the element hide away
+    */
+    page.waitForNavigation({ waitUntil: "networkidle0" })
 
     // if ask then re-enter your password
-    if(page.$selector("input[type=password]")){
+    if(page.$("input[type=password]")){
         
         console.log("renter password")
         debug(page)
 
         // element = document.querySelector("input[type=password]")
-        await page.type('input[type=password]', process.env.PASS)
+        await page.type("input[type=password]", process.env.PASS)
 
         // submit password
         // document.querySelector("td button[type=submit]")
-        await page.click('td button[type=submit]')
+        await page.click("td button[type=submit]")
+
+        //wait for data
+        page.waitForNavigation({ waitUntil: "networkidle0" })
+
     }
 
 
@@ -80,21 +102,21 @@ const puppeteer = require('puppeteer');
 })();
 
 async function loginToFacebook(page){
-    await page.goto('https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings');
+    await page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings");
     // iframe link https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ4BCb8-akQALIDVKAA&ctarget=https%3A%2F%2Fwww.facebook.com
     // normal link provided by facebook https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings
     await page.type("#email", process.env.ID)
     await page.type("#pass",  process.env.PASS)
     await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.click('button[type=submit]'),
+        page.click("button[type=submit]"),
     ]);
 
     // go to the iframe it self
     // now iframe content can be access normally. 
     await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.goto('https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ4BCb8-akQALIDVKAA&ctarget=https%3A%2F%2Fwww.facebook.com')
+        page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ4BCb8-akQALIDVKAA&ctarget=https%3A%2F%2Fwww.facebook.com")
     ]);
 }
 async function facebookLoginCases() {
@@ -120,7 +142,7 @@ async function facebookLoginCases() {
     
     ]) 
     console.log(await page.content());
-    await page.screenshot({path: 'screenshot.png'});
+    await page.screenshot({path: "screenshot.png"});
     console.log("It ran")
 }
 
