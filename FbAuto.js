@@ -12,9 +12,6 @@ const puppeteer = require("puppeteer");
     });
     const page = await browser.newPage();
     
-    //very time you use the var you add a chrome debugger tag 
-    const debug = addDebugger(page)
-
     await loginToFacebook(page)
     console.log("finishing loging in")
 
@@ -28,7 +25,7 @@ const puppeteer = require("puppeteer");
     while(copyingDataNotice){
         await page.reload( {timeout: 300000});
     }
-    debug
+    debug(page)
     console.log("finish waiting for data0")
 
     // go to available copies to download the data
@@ -45,7 +42,7 @@ const puppeteer = require("puppeteer");
     ]);
 
     console.log("click download button")
-    debug
+    debug(page)
 
 
     // if ask then re-enter your password
@@ -53,7 +50,7 @@ const puppeteer = require("puppeteer");
     if(passwordField){
         
         console.log("renter password")
-        debug
+        debug(page)
 
         // element = document.querySelector("input[type=password]")
         await page.type("input[type=password]", process.env.PASS)
@@ -122,7 +119,7 @@ async function facebookLoginCases() {
     console.log("It ran")
 }
 
-async function addDebugger(page){
+async function debug(page){
     await page.evaluate(() => {
         // add chrome debugger stopping point when chrome inpector is open 
         debugger
