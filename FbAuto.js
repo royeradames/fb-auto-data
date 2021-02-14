@@ -8,35 +8,62 @@ const puppeteer = require("puppeteer");
         headless:false,
         defaultViewport: null,
         devtools: true,
-        args: ["--disable-notifications", "--start-maximized"]
+        args: ["--disable-notifications", "--start-maximized", '--disable-features=site-per-process']
     });
     const page = await browser.newPage();
     
+    // login to facebook
     await loginToFacebook(page)
     console.log("finishing loging in")
 
+    // select doc frame
+    // must be donoe this way so download button works.
+    // const doc = page.mainFrame().childFrames()[0]
+
+    let elementHandle = await page.$('iframe');
+    let doc = await elementHandle.contentFrame();
+
     // click the create file
     await Promise.all([
-        page.waitForSelector("[role=heading]"),
-        page.click("button"),
+        doc.waitForSelector("[role=heading]"),
+        doc.click("button"),
     ]);
 
     // refresh every 5 minute until "[role=heading]" is no more 
     // then Pending becomes download
     // facebook does not refreshes the page after the content is ready so you have to do it.
     
-    while(await page.$("[role=heading]")){
+    // await doc.evaluate(() => {
+    //     while(document.querySelector("[role=heading]")){
+    //         console.log("going to start waiting for 5 min")
+    //         await page.waitForTimeout()//300000
+    //         console.log("going to reload")
+    //         await page.reload();
+    //         console.log("finish reloading")
+    //     }
+    // })
+
+    // getting error UnhandledPromiseRejectionWarning: Error: Execution context is not available in detached frame. Happens every time page reloads
+    while(await doc.$("[role=heading]")){
         console.log("going to start waiting for 5 min")
-        await page.waitForTimeout(300000)
+        await page.waitForTimeout()//300000
         console.log("going to reload")
         await page.reload();
+        console.log("finish reloading")
     }
+    // while(await doc.$("[role=heading]")){
+    //     console.log("going to start waiting for 5 min")
+    //     await page.waitForTimeout()//300000
+    //     console.log("going to reload")
+    //     await page.reload();
+    //     console.log("finish reloading")
+    // }
     debug(page)
     console.log("finish waiting for data")
 
     // go to available copies to download the data
     const avaliableCopiesTab = "li:last-child" 
-    await page.click(avaliableCopiesTab)
+    await doc.click(avaliableCopiesTab)
     console.log("go to available copies")
     
     
@@ -44,8 +71,8 @@ const puppeteer = require("puppeteer");
     // todo: fix download button not working. I will need to work it using the nested frame.
     const downloadButton = "button[type=submit]"
     await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.click(downloadButton),
+        doc.waitForNavigation({ waitUntil: "networkidle0" }),
+        doc.click(downloadButton),
     ]);
 
     console.log("click download button")
@@ -53,21 +80,21 @@ const puppeteer = require("puppeteer");
 
 
     // if ask then re-enter your password
-    const passwordField = page.$("input[type=password]")
+    const passwordField = doc.$("input[type=password]")
     if(passwordField){
         
         console.log("renter password")
         debug(page)
 
         // element = document.querySelector("input[type=password]")
-        await page.type("input[type=password]", process.env.PASS)
+        await doc.type("input[type=password]", process.env.PASS)
 
         // submit password
         // document.querySelector("td button[type=submit]")
-        await page.click("td button[type=submit]")
+        await doc.click("td button[type=submit]")
 
         //wait for data
-        page.waitForNavigation({ waitUntil: "networkidle0" })
+        doc.waitForNavigation({ waitUntil: "networkidle0" })
 
     }
 
@@ -92,12 +119,12 @@ async function loginToFacebook(page){
         page.click("button[type=submit]"),
     ]);
 
-    // go to the iframe it self
-    // now iframe content can be access normally. 
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ4BCb8-akQALIDVKAA&ctarget=https%3A%2F%2Fwww.facebook.com")
-    ]);
+    // // go to the iframe it self
+    // // now iframe content can be access normally. 
+    // await Promise.all([
+    //     page.waitForNavigation({ waitUntil: "networkidle0" }),
+    //     page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ4BCb8-akQALIDVKAA&ctarget=https%3A%2F%2Fwww.facebook.com")
+    // ]);
 }
 async function facebookLoginCases() {
     // what happens when the user init get files before login in on our portal?
