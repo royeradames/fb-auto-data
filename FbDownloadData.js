@@ -10,38 +10,44 @@ const puppeteer = require("puppeteer");
         devtools: true,
         args: ["--disable-notifications", "--start-maximized"]
     });
-
-    // set download location to local project path
-    // await page._client.send("Page.setDownloadBehavior", {
-    //     behavior: "allow",
-    //     downloadPath: "./downloads",
-    // });
     
     const page = await browser.newPage();
-    
+    const loginUrl = "https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings"
     // login to facebook
-    await loginToFacebook(page)
+    await loginToFacebook(page, loginUrl)
 
-    //Ask for data
-    await createData(page)
+    // //get child frame url 
+    // const iframeUrl = page.mainFrame().childFrames()[0].url()
+    // // go to the iframe it self
+    // // now iframe content can be access normally. 
+    // await Promise.all([
+    //     page.waitForNavigation({ waitUntil: "networkidle0" }),
+    //     page.goto(iframeUrl)
+    // ]);
 
-    //wait for data
-    await waitForData(page)
+    // //Ask for data
+    // await createData(page)
+
+    // //wait for data
+    // await waitForData(page)
     
-
-    //Download data
-    await downloadData(page)
 
     //close browser
-    console.log("Closing browser")
+    console.log("Closing 1 browser")
     await browser.close();
+
+    //Download data
+    await downloadData(loginUrl)
+
+    console.log("Closing browser")
+    await downloadBrowser.close();
 
 })();
 
-async function loginToFacebook(page){
+async function loginToFacebook(page, loginUrl){
     
     // go to login
-    await page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings");
+    await page.goto(loginUrl);
     await page.type("#email", process.env.ID)
     await page.type("#pass",  process.env.PASS)
     await Promise.all([
@@ -52,12 +58,7 @@ async function loginToFacebook(page){
     
 }
 async function createData(page){
-    // go to the iframe it self
-    // now iframe content can be access normally. 
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ5L_wjmrBX3F5DfFjo&ctarget=https%3A%2F%2Fwww.facebook.com")
-    ]);
+    
         
     // click the create file
         await Promise.all([
@@ -69,12 +70,6 @@ async function createData(page){
         // you can cancel previous and start a new one or click the desable button and act like it's normal.
     }
 async function waitForData(page){
-    // go to the iframe it self
-    // now iframe content can be access normally. 
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings&cquick=jsc_c_i&cquick_token=AQ5L_wjmrBX3F5DfFjo&ctarget=https%3A%2F%2Fwww.facebook.com")
-    ]);
 
     // refresh every 5 minute until "[role=heading]" is no more 
     // then Pending becomes download
@@ -89,16 +84,24 @@ async function waitForData(page){
     }
     
     console.log("finish waiting for data")
-    //go to main frame
-    Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings"),
-    ]);
+    
 }
-async function downloadData(page){
+async function downloadData(loginUrl){
+    console.log("starting download browser")
+    const downloadBrowser = await puppeteer.launch({
+        headless: false,
+        defaultViewport: null,
+        devtools: true,
+        args: ["--disable-notifications", "--start-maximized"]
+    });
+
+    const downloadPage = await downloadBrowser.newPage();
+    
+    //go to main frame
+    await loginToFacebook(downloadPage, loginUrl)
 
     //select child frame
-    let elementHandle = await page.$('iframe');
+    let elementHandle = await downloadPage.$('iframe');
     let doc = await elementHandle.contentFrame();
 
     // go to available copies to download the data
@@ -111,7 +114,7 @@ async function downloadData(page){
     const downloadButton = "button[type=submit]"
     await Promise.all([
         // todo: why is navigation waiting undefinitely when download fail? 
-    page.waitForNavigation({ timeout: 0, waitUntil: "networkidle0" }),
+        downloadPage.waitForNavigation({ timeout: 0, waitUntil: "networkidle0" }),
         doc.click(downloadButton),
     ]);
 
@@ -135,9 +138,11 @@ async function downloadData(page){
         await doc.click("td button[type=submit]")
 
         //wait for data
-        page.waitForNavigation({ waitUntil: "networkidle0" })
+        downloadPage.waitForNavigation({ waitUntil: "networkidle0" })
 
     }
+
+    
 }
 async function facebookLoginCases() {
     // what happens when the user init get files before login in on our portal?
