@@ -5,40 +5,40 @@ const puppeteer = require("puppeteer");
 (async () => {
     const loginUrl = "https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings"
 
-    // //todo: set downlaod to project folder
-    // const browser = await puppeteer.launch({
-    //     headless: false,
-    //     defaultViewport: null,
-    //     devtools: true,
-    //     args: ["--disable-notifications", "--start-maximized"]
-    // });
+    //todo: set downlaod to project folder
+    const browser = await puppeteer.launch({
+        headless: false,
+        defaultViewport: null,
+        devtools: true,
+        args: ["--disable-notifications", "--start-maximized"]
+    });
     
-    // const page = await browser.newPage();
-    // // login to facebook
-    // await loginToFacebook(page, loginUrl)
+    const page = await browser.newPage();
+    // login to facebook
+    await loginToFacebook(page, loginUrl)
 
-    // //get child frame url 
-    // const iframeUrl = page.mainFrame().childFrames()[0].url()
+    //get child frame url 
+    const iframeUrl = page.mainFrame().childFrames()[0].url()
     
-    // // go to the iframe it self
-    // // now iframe content can be access normally. 
-    // await Promise.all([
-    //     page.waitForNavigation({ waitUntil: "networkidle0" }),
-    //     page.goto(iframeUrl)
-    // ]);
+    // go to the iframe it self
+    // now iframe content can be access normally. 
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.goto(iframeUrl)
+    ]);
 
-    // //Ask for data
-    // await createData(page)
+    //Ask for data
+    await createFile(page)
 
-    // //wait for data
-    // await waitForData(page)
+    //wait for data
+    await waitForFile(page)
 
-    // //close browser
-    // console.log("Closing 1 browser")
-    // await browser.close();
+    //close browser
+    console.log("Closing 1 browser")
+    await browser.close();
 
-    //Download data
-    // await downloadData(loginUrl)
+    // Download data
+    await downloadFile(loginUrl)
 
     
 
@@ -57,7 +57,7 @@ async function loginToFacebook(page, loginUrl){
 
     
 }
-async function createData(page){
+async function createFile(page){
     
         
     // click the create file
@@ -69,7 +69,7 @@ async function createData(page){
         //todo:what happens when data is already being created?
         // you can cancel previous and start a new one or click the desable button and act like it's normal.
     }
-async function waitForData(page){
+async function waitForFile(page){
 
     // refresh every 5 minute until "[role=heading]" is no more 
     // then Pending becomes download
@@ -87,7 +87,7 @@ async function waitForData(page){
     console.log("finish waiting for data")
     
 }
-async function downloadData(loginUrl){
+async function downloadFile(loginUrl){
     console.log("starting download browser")
     const downloadPath = "D:\\Lambda\\projects\\puppeteer_test\\data"
     /* start the browser */
