@@ -3,6 +3,7 @@ const puppeteer = require("puppeteer");
 // const fs = require("fs");
 
 (async () => {
+    const loginUrl = "https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings"
     //todo: set downlaod to project folder
     const browser = await puppeteer.launch({
         headless: false,
@@ -12,25 +13,24 @@ const puppeteer = require("puppeteer");
     });
     
     const page = await browser.newPage();
-    const loginUrl = "https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings"
     // login to facebook
     await loginToFacebook(page, loginUrl)
 
-    // //get child frame url 
-    // const iframeUrl = page.mainFrame().childFrames()[0].url()
-    // // go to the iframe it self
-    // // now iframe content can be access normally. 
-    // await Promise.all([
-    //     page.waitForNavigation({ waitUntil: "networkidle0" }),
-    //     page.goto(iframeUrl)
-    // ]);
-
-    // //Ask for data
-    // await createData(page)
-
-    // //wait for data
-    // await waitForData(page)
+    //get child frame url 
+    const iframeUrl = page.mainFrame().childFrames()[0].url()
     
+    // go to the iframe it self
+    // now iframe content can be access normally. 
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.goto(iframeUrl)
+    ]);
+
+    //Ask for data
+    await createData(page)
+
+    //wait for data
+    await waitForData(page)
 
     //close browser
     console.log("Closing 1 browser")
@@ -39,8 +39,7 @@ const puppeteer = require("puppeteer");
     //Download data
     await downloadData(loginUrl)
 
-    console.log("Closing browser")
-    await downloadBrowser.close();
+    
 
 })();
 
@@ -82,21 +81,34 @@ async function waitForData(page){
         await page.reload();
         console.log("finish reloading")
     }
+    await page.reload();
     
     console.log("finish waiting for data")
     
 }
 async function downloadData(loginUrl){
     console.log("starting download browser")
+    const downloadPath = "D:\\Lambda\\projects\\puppeteer_test\\data"
+    // start the browser
     const downloadBrowser = await puppeteer.launch({
         headless: false,
         defaultViewport: null,
         devtools: true,
-        args: ["--disable-notifications", "--start-maximized"]
+        args: ["--disable-notifications", "--start-maximized", '--disable-extensions', '--mute-audio'],
+        env: {
+            PUPPETEER_DOWNLOAD_PATH: downloadPath
+        }
     });
-
-    const downloadPage = await downloadBrowser.newPage();
     
+    // create new tab
+    const downloadPage = await downloadBrowser.newPage();
+
+    // set download location to local project path
+    await downloadPage._client.send("Page.setDownloadBehavior", {
+        behavior: "allow",
+        downloadPath: downloadPath,
+    });
+ 
     //go to main frame
     await loginToFacebook(downloadPage, loginUrl)
 
@@ -112,14 +124,9 @@ async function downloadData(loginUrl){
     
     //download data and wait for it
     const downloadButton = "button[type=submit]"
-    await Promise.all([
-        // todo: why is navigation waiting undefinitely when download fail? 
-        downloadPage.waitForNavigation({ timeout: 0, waitUntil: "networkidle0" }),
-        doc.click(downloadButton),
-    ]);
-
+    // todo: why is navigation waiting undefinitely when download fail? 
+    await doc.click(downloadButton)
     console.log("clicked download button")
-
 
     // if ask then re-enter your password
     //document.querySelector("iframe").querySelector("input[type=password]")
@@ -137,11 +144,66 @@ async function downloadData(loginUrl){
         // document.querySelector("td button[type=submit]")
         await doc.click("td button[type=submit]")
 
-        //wait for data
-        downloadPage.waitForNavigation({ waitUntil: "networkidle0" })
-
     }
 
+    //custom wait for file to finish
+    await waitForFile()
+    async function waitForFile(){
+        //new tab
+        const settingPage = await downloadBrowser.newPage();
+        
+        // go to settings
+        await settingPage.goto("chrome://downloads/");
+        await settingPage.waitForSelector("downloads-manager")
+        console.log(`Going to start checking progress bar`)
+
+        // wait for file        
+        await settingPage.evaluateHandle( async () => {
+            //wait until the progress bar is gone
+            let isShowingProgressBar = false
+            let timeoutID
+            let loop = 1
+
+            console.log(`have check progress bar ${loop} times`)
+            console.log(isShowingProgressBar)
+
+            do{
+                const waitForHalfMinute = 30000
+                // check that the progress bar is there every half a minute
+                // await for a Promise that check if the status bar is null on every .5 minutes in a loop 
+                // when it does not fine the status bar it will stop the loop
+                console.log(`Going to create promise`)
+
+                await new Promise( resolve => { 
+                    console.log(`Going to wait for the promise for ${waitForHalfMinute} MS`)
+                    
+                    timeoutID = setTimeout(() => {
+                        console.log("Running the time out")
+                        try {
+                           // check if progress bar became display none 
+                            isShowingProgressBar = document.querySelector("downloads-manager").shadowRoot.querySelector("#mainContainer").querySelector("#downloadsList").querySelector("downloads-item").shadowRoot.querySelector("#details div:nth-child(4)[style*='display: none']").hidden
+                        } catch (error) {
+                            //if you cannot find the progress bar being display has none then is being display
+                            isShowingProgressBar = true  
+                        }
+                        console.log("out of the time out the progressbar is ", isShowingProgressBar)
+                        
+                        resolve()
+                    }, waitForHalfMinute)
+                })
+
+
+                console.log("Finish the timeout")
+                console.log(isShowingProgressBar)
+            }while (isShowingProgressBar)
+            clearTimeout(timeoutID)
+            console.log("finished clearning out")
+        } )
+    }
+
+    // close browser
+    console.log("Closing browser")
+    await downloadBrowser.close();
     
 }
 async function facebookLoginCases() {
