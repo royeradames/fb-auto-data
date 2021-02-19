@@ -4,40 +4,41 @@ const puppeteer = require("puppeteer");
 
 (async () => {
     const loginUrl = "https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings"
-    //todo: set downlaod to project folder
-    const browser = await puppeteer.launch({
-        headless: false,
-        defaultViewport: null,
-        devtools: true,
-        args: ["--disable-notifications", "--start-maximized"]
-    });
+
+    // //todo: set downlaod to project folder
+    // const browser = await puppeteer.launch({
+    //     headless: false,
+    //     defaultViewport: null,
+    //     devtools: true,
+    //     args: ["--disable-notifications", "--start-maximized"]
+    // });
     
-    const page = await browser.newPage();
-    // login to facebook
-    await loginToFacebook(page, loginUrl)
+    // const page = await browser.newPage();
+    // // login to facebook
+    // await loginToFacebook(page, loginUrl)
 
-    //get child frame url 
-    const iframeUrl = page.mainFrame().childFrames()[0].url()
+    // //get child frame url 
+    // const iframeUrl = page.mainFrame().childFrames()[0].url()
     
-    // go to the iframe it self
-    // now iframe content can be access normally. 
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.goto(iframeUrl)
-    ]);
+    // // go to the iframe it self
+    // // now iframe content can be access normally. 
+    // await Promise.all([
+    //     page.waitForNavigation({ waitUntil: "networkidle0" }),
+    //     page.goto(iframeUrl)
+    // ]);
 
-    //Ask for data
-    await createData(page)
+    // //Ask for data
+    // await createData(page)
 
-    //wait for data
-    await waitForData(page)
+    // //wait for data
+    // await waitForData(page)
 
-    //close browser
-    console.log("Closing 1 browser")
-    await browser.close();
+    // //close browser
+    // console.log("Closing 1 browser")
+    // await browser.close();
 
     //Download data
-    await downloadData(loginUrl)
+    // await downloadData(loginUrl)
 
     
 
@@ -75,7 +76,7 @@ async function waitForData(page){
     // facebook does not refreshes the page after the content is ready so you have to do it.
     const fiveMinutes = 300000
     while(await page.$("[role=heading]")){
-        console.log("going to start waiting for 5 min")
+        console.log(`going to start waiting for 5 min starting in ${Date().split(" ")[4]}`)
         await page.waitForTimeout(fiveMinutes)
         console.log("going to reload")
         await page.reload();
@@ -89,7 +90,7 @@ async function waitForData(page){
 async function downloadData(loginUrl){
     console.log("starting download browser")
     const downloadPath = "D:\\Lambda\\projects\\puppeteer_test\\data"
-    // start the browser
+    /* start the browser */
     const downloadBrowser = await puppeteer.launch({
         headless: false,
         defaultViewport: null,
@@ -100,7 +101,7 @@ async function downloadData(loginUrl){
         }
     });
     
-    // create new tab
+    /* create new tab */
     const downloadPage = await downloadBrowser.newPage();
 
     // set download location to local project path
@@ -109,9 +110,10 @@ async function downloadData(loginUrl){
         downloadPath: downloadPath,
     });
  
-    //go to main frame
+    /* login to facebook */
     await loginToFacebook(downloadPage, loginUrl)
 
+    /* Go to download option */
     //select child frame
     let elementHandle = await downloadPage.$('iframe');
     let doc = await elementHandle.contentFrame();
@@ -121,41 +123,53 @@ async function downloadData(loginUrl){
     await doc.click(avaliableCopiesTab)
     console.log("go to available copies")
     
+    /* download file */
+    await downloadFile(doc)
+
+    /* wait for file to finish- custom waiter */
+    await waitForFile(downloadBrowser, doc)
+
+    // close browser
+    console.log("Closing browser")
+    await downloadBrowser.close();
     
-    //download data and wait for it
-    const downloadButton = "button[type=submit]"
-    // todo: why is navigation waiting undefinitely when download fail? 
-    await doc.click(downloadButton)
-    console.log("clicked download button")
-
-    // if ask then re-enter your password
-    //document.querySelector("iframe").querySelector("input[type=password]")
-    const passwordField = await doc.$("input[type=password]")
-    console.log("passwordField: ", passwordField)
-    if(passwordField){
+}
+async function downloadFile(doc){
         
-        console.log("renter password")
-        debugger
+        //download data and wait for it
+        const downloadButton = "button[type=submit]"
+        // todo: why is navigation waiting undefinitely when download fail? 
+        await doc.click(downloadButton)
+        console.log("clicked download button")
 
-        // element = document.querySelector("input[type=password]")
-        await doc.type("input[type=password]", process.env.PASS)
+        // if ask then re-enter your password
+        //document.querySelector("iframe").querySelector("input[type=password]")
+        const passwordField = await doc.$("input[type=password]")
+        console.log("passwordField: ", passwordField)
+        if(passwordField){
+            
+            console.log("renter password")
+            debugger
 
-        // submit password
-        // document.querySelector("td button[type=submit]")
-        await doc.click("td button[type=submit]")
+            // element = document.querySelector("input[type=password]")
+            await doc.type("input[type=password]", process.env.PASS)
 
+            // submit password
+            // document.querySelector("td button[type=submit]")
+            await doc.click("td button[type=submit]")
+
+        }
     }
-
-    //custom wait for file to finish
-    await waitForFile()
-    async function waitForFile(){
+async function waitForFile(downloadBrowser){
         //new tab
         const settingPage = await downloadBrowser.newPage();
         
         // go to settings
         await settingPage.goto("chrome://downloads/");
         await settingPage.waitForSelector("downloads-manager")
+        // todo: open the dev console on the console tab instead of the elements tab
         console.log(`Going to start checking progress bar`)
+        
 
         // wait for file        
         await settingPage.evaluateHandle( async () => {
@@ -175,18 +189,77 @@ async function downloadData(loginUrl){
                 console.log(`Going to create promise`)
 
                 await new Promise( resolve => { 
-                    console.log(`Going to wait for the promise for ${waitForHalfMinute} MS`)
+                    console.log(`Going to wait for the promise for ${waitForHalfMinute} MS at ${Date().split(" ")[4]}`)
                     
-                    timeoutID = setTimeout(() => {
+                    timeoutID = setTimeout(async () => {
                         console.log("Running the time out")
                         try {
+                            // todo: automate network fix
+                            /*
+                                When the file becomes 0 bs check if the total MB does the equal the current Mb if true then
+                                - Redownload a new file. Refactor the download code to be reuse here
+                                - wait for the cancel button to appear wait 5 min max for the new file
+                                - click cancel button 
+                                - click remove from list option. #removen
+                            */
+                           // check the current download status
+                           console.log("checking if there is a network issue")
+                            const totalData = Number(document.querySelector("downloads-manager").shadowRoot.querySelector("#mainContainer").querySelector("#downloadsList").querySelector("downloads-item").shadowRoot.querySelector("#details").querySelector("#description").innerText.split(" ")[6])
+                            const currentData = Number(document.querySelector("downloads-manager").shadowRoot.querySelector("#mainContainer").querySelector("#downloadsList").querySelector("downloads-item").shadowRoot.querySelector("#details").querySelector("#description").innerText.split(" ")[3])
+                            const downloadSpeed = Number(document.querySelector("downloads-manager").shadowRoot.querySelector("#mainContainer").querySelector("#downloadsList").querySelector("downloads-item").shadowRoot.querySelector("#details").querySelector("#description").innerText.split(" ")[0])
+
+                            // is file still downlaoding but there is no download speed?
+                            const isNoDownloadSpeed = downloadSpeed === 0 
+                            const isStillDownloading = totalData != currentData
+                            console.log(totalData)
+                            console.log(currentData)
+                            console.log(downloadSpeed)
+                            console.log(isNoDownloadSpeed)
+                            console.log(isStillDownloading)
+                            // debugger
+                            if( isNoDownloadSpeed && isStillDownloading){
+                                /* start the network error fix */
+                                // Redownload a new file. Refactor the download code to be reuse here
+                                console.log("going to redownload a new file")
+                                // debugger
+                                const downloadUrl = document.querySelector("downloads-manager").shadowRoot.querySelector("#mainContainer").querySelector("#downloadsList").querySelector("downloads-item").shadowRoot.querySelector("#details").querySelector("#url")
+                                
+                                // wait until 5 seconds before redownloading the file
+                                const fiveSeconds = 5000
+                                await new Promise( resolve => { 
+                                    console.log(`Going to wait for the promise for ${waitForHalfMinute} MS at ${Date().split(" ")[4]}`)
+                                    
+                                    timeoutID = setTimeout(async () => {
+
+                                    downloadUrl.click()
+                                    resolve()
+                                }, fiveSeconds)})
+
+                                // click cancel button 
+                                // debugger
+                                console.log("going to click cancel button")
+                                const cancelButton = document.querySelector("downloads-manager").shadowRoot.querySelector("#mainContainer").querySelector("#downloadsList").querySelector("downloads-item").shadowRoot.querySelector("#details").querySelector("#safe").querySelectorAll("cr-button")[1]
+                                await cancelButton.click()
+                                // debugger
+
+                                // click remove from list option. #removen
+                                // debugger
+                                console.log("going to click remove option")
+                                const removeListOption = document.querySelector("downloads-manager").shadowRoot.querySelector("#mainContainer").querySelector("#downloadsList").querySelector("downloads-item").shadowRoot.querySelector("#remove")
+                                await removeListOption.click()
+                                // debugger
+
+                                console.log("finished fixing the network error")
+                            }
+
                            // check if progress bar became display none 
                             isShowingProgressBar = document.querySelector("downloads-manager").shadowRoot.querySelector("#mainContainer").querySelector("#downloadsList").querySelector("downloads-item").shadowRoot.querySelector("#details div:nth-child(4)[style*='display: none']").hidden
                         } catch (error) {
                             //if you cannot find the progress bar being display has none then is being display
+                            debugger
                             isShowingProgressBar = true  
                         }
-                        console.log("out of the time out the progressbar is ", isShowingProgressBar)
+                        console.log("out of the timeout the progressbar is ", isShowingProgressBar)
                         
                         resolve()
                     }, waitForHalfMinute)
@@ -195,40 +268,9 @@ async function downloadData(loginUrl){
 
                 console.log("Finish the timeout")
                 console.log(isShowingProgressBar)
-            }while (isShowingProgressBar)
+                loop++
+            }while (isShowingProgressBar) //stop if the progress bar cannot be view
             clearTimeout(timeoutID)
             console.log("finished clearning out")
         } )
     }
-
-    // close browser
-    console.log("Closing browser")
-    await downloadBrowser.close();
-    
-}
-async function facebookLoginCases() {
-    // what happens when the user init get files before login in on our portal?
-    // cancel that download, then go back and start from the beginning 
-    
-    if(selector === "#recovery_code_entry"){
-        await page.type("#recovery_code_entry", "445364")
-        await page.click("button[type=submit]")
-    }
-    if(selector === "label[for=password_new]"){
-        await page.click("#skip_button")
-    }
-    if (selector === "#error_box"){
-        const errorMessage = document.selectAll("#error_box").div.innerHTML
-        console.log(errorMessage)
-        console.log("Fix error and try again")
-        await browser.close();
-    }
-    await Promise.all([
-      page.waitForSelector("#approvals_code"),
-      page.click("button[type=submit]")
-    
-    ]) 
-    console.log(await page.content());
-    await page.screenshot({path: "screenshot.png"});
-    console.log("It ran")
-}
