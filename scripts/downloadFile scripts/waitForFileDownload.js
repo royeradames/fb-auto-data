@@ -3,7 +3,9 @@ async function waitForFileDownload(downloadBrowser){
         const settingPage = await downloadBrowser.newPage();
         
         // go to settings
+        console.log("heading to chrome downloads")
         await settingPage.goto("chrome://downloads/");
+        console.log("waiting for downloads manager")
         await settingPage.waitForSelector("downloads-manager")
         console.log(`Going to start checking progress bar`)
         
