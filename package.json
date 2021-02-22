@@ -4,7 +4,7 @@
   "description": "",
   "main": "FbAuto.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nodemon ./playWright/test.js",
     "start": "nodemon ./playWright/index.js",
     "debug": "nodemon index.js"
   },

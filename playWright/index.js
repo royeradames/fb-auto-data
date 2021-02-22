@@ -18,6 +18,7 @@ const { chromium } = require('playwright');
   });
 
   /*Authentication*/
+  
   await page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings");
   
   // Interact with login form
@@ -56,12 +57,21 @@ const { chromium } = require('playwright');
 
   /* wait for download file */
   //notice when the download starts
+  console.log("going to start waiting for file")
+  // download file with defaul name and no duplicates 
+  page.on('download', download => {
+      // save the download file has the suggested file name
+      download.saveAs(`./data/${ download.suggestedFilename()}`)
+      // delete the criptic file name
+      download.delete()
+    });
   const download  = await page.waitForEvent('download');
   // Wait for the download process to complete
   // await download.saveAs("Facebook");
   await download.path()
 
   /* close browser */
+  console.log("finished download")
   await browser.close();
   
 })();
