@@ -1,5 +1,5 @@
 {
-  "name": "puppeteer_test",
+  "name": "Automation",
   "version": "1.0.0",
   "description": "",
   "main": "FbAuto.js",
@@ -12,9 +12,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
-    "nodemon": "^2.0.7",
     "puppeteer": "^7.1.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^2.0.7",
+    "playwright": "^1.8.1"
   }
 }
