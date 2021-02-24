@@ -1,31 +1,7 @@
 require("dotenv").config()
-const { chromium } = require('playwright');
-const login = require("./login")
 
-const downloadFile = async () => {
-  // start browser
-  const browser = await chromium.launch({ 
-    args: ["--start-maximized", "--disable-notifications",  '--disable-extensions', '--mute-audio'],
-    devtools: true, 
-    slowMo: 50,
-    defaultViewport: null,
-    downloadsPath: "D:\\Lambda\\projects\\puppeteer_test\\data",
-
-  });
-  const page = await browser.newPage({
-    acceptDownloads: true,
-    viewport: null,
-  });
-
-  /*Authentication*/
-  await login(page)
-
+async function downloadFile(page) {
   /* Go to download option */
-  //select child frame
-  const frameDocUrl = await (await page.waitForSelector("iframe")).getAttribute("src")
-  const doc = await page.frame({url: frameDocUrl})
-  // await doc.waitForNavigation({waitUntil: "domcontentloaded"})
-  await doc.waitForLoadState('domcontentloaded');
   // go to available copies to download the data
   const avaliableCopiesTab = "li:last-child" 
   // const avaliableCopiesTab = await page.waitForSelector("li:last-child")
@@ -44,7 +20,6 @@ const downloadFile = async () => {
 
       // submit password
       await doc.click("td button[type=submit]")
-
   }
 
   /* wait for download file */
@@ -73,7 +48,6 @@ const downloadFile = async () => {
 
   /* close browser */
   console.log("finished download")
-  await browser.close();
   
 }
   // await page.evaluate(() => {debugger})
