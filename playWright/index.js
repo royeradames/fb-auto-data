@@ -23,6 +23,6 @@ async function index() {
   await downloadFile(page, dataDoc)
 
   /* Close Automation */
-  browser.close()
+  await browser.close()
 
 }
