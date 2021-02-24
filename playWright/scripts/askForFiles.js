@@ -1,16 +1,12 @@
-async function createFile(page){
-    //select child frame
-    const frameDocUrl = await (await page.waitForSelector("iframe")).getAttribute("src")
-    const doc = await page.frame({url: frameDocUrl})
-    await doc.waitForLoadState('domcontentloaded');
-
-    // create file
+async function createFile(page, doc){
+    /* create file */
     await Promise.all([
-        page.waitForSelector("[role=heading]"),
-        page.click("button"),
+        doc.waitForSelector("[role=heading]"),
+        doc.click("button"),
     ]);
     
     //todo: what to do if the file has been ask already?
+    // you can cancel previous and start a new one or click the desable button and act like it's normal.
 }
 
 modules.exports = createFile
