@@ -1,8 +1,9 @@
 const { chromium } = require('playwright');
 
-const downloadFile = require("./scripts/downloadFile")
 const login = require("./scripts/login")
 index()
+const askForFiles = require("./scripts/askForFiles")
+const downloadFile = require("./scripts/downloadFile")
 
 async function index() {
   /* save credentials enter by user*/
@@ -15,7 +16,7 @@ async function index() {
         // devtools: true,
         downloadsPath: "D:\\Lambda\\projects\\puppeteer_test\\data",
     });
-  // Create a new incognito browser context.
+  // Create a new incognito browser context with user credentials
   const context = await browser.newContext({
         acceptDownloads: true,
         viewport: null,
@@ -25,7 +26,8 @@ async function index() {
   const page = await context.newPage()
   await page.goto("https://www.facebook.com/dyi/?x=AdkadZSUMBkpk0EF&referrer=yfi_settings");
   /* ask for files*/
-
+  await askForFiles(page)
+  
   /* Wait for files*/
 
   /* Download files*/
