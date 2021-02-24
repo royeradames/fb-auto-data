@@ -1,5 +1,5 @@
 
-const login = require("./scripts/login")
+const storeCredentials = require("./scripts/storeCredentials")
 index()
 const goToDownloadYourInformation = require("./scripts/goToDownloadYourInformation")
 const askForFile = require("./scripts/askForFiles")
@@ -8,7 +8,7 @@ const downloadFile = require("./scripts/downloadFile")
 
 async function index() {
   /* save credentials enter by user*/
-  await login()
+  await storeCredentials()
 
   /* start headless browser with credentials*/
   const [browser, page, dataDoc] = await goToDownloadYourInformation()
