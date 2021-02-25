@@ -1,8 +1,4 @@
-const { chromium } = require('playwright');
-const setUpBrower = require("./setUpBrowser")
-async function goToDownloadYourInformation(){
-    /*start browser */
-    const [browser, context] = await setUpBrower()
+async function goToDownloadYourInformation( context){
     
     // Create a new page in a pristine context. 
     const page = await context.newPage()
@@ -16,7 +12,7 @@ async function goToDownloadYourInformation(){
     await doc.waitForLoadState('domcontentloaded');
 
     // return the page, and doc
-    return [browser, page, doc]
+    return [page, doc]
 }
 
 module.exports = goToDownloadYourInformation
