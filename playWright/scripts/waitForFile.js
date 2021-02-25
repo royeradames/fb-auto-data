@@ -1,9 +1,4 @@
 async function waitForFile(doc){
-    /* select child frame */
-    const frameDocUrl = await (await page.waitForSelector("iframe")).getAttribute("src")
-    const doc = await page.frame({url: frameDocUrl})
-    await doc.waitForLoadState('domcontentloaded');
-
     /* waitForFile */
     // refresh every 5 minute until "[role=heading]" is no more 
     // then Pending becomes download
