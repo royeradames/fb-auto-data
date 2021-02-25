@@ -1,4 +1,4 @@
-![Map of Facebook Automatic File Downloader](./media/FbAutomaticFileDownloader.PNG)
+![Map of Facebook Automatic File Downloader](./images/FbAutomaticFileDownloader.PNG)
 # setup
 - create a .env
 - create env variables of ID, and PASS
