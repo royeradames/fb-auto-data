@@ -1,11 +1,11 @@
 
 const storeCredentials = require("./scripts/storeCredentials")
-index()
 const goToDownloadYourInformation = require("./scripts/goToDownloadYourInformation")
 const askForFile = require("./scripts/askForFiles")
 const waitForFile = require("./scripts/waitForFile")
 const downloadFile = require("./scripts/downloadFile")
 
+index()
 async function index() {
   /* save credentials enter by user*/
   await storeCredentials()
