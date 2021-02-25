@@ -1,6 +1,6 @@
 require("dotenv").config()
 
-async function downloadFile(page) {
+async function downloadFile(page, doc ) {
   /* Go to download option */
   // go to available copies to download the data
   const avaliableCopiesTab = "li:last-child" 
