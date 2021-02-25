@@ -1,21 +1,8 @@
-require("dotenv").config()
 const { chromium } = require('playwright');
-
+const setUpBrower = require("./setUpBrowser")
 async function goToDownloadYourInformation(){
-    /* start headless browser with credentials*/
-    const browser = await chromium.launch({ 
-        args: ["--start-maximized", "--disable-notifications",  '--disable-extensions', '--mute-audio'],
-        defaultViewport: null,
-        // devtools: true,
-        downloadsPath: "D:\\Lambda\\projects\\puppeteer_test\\data",
-    });
-    
-    // Create a new incognito browser context with user credentials
-    const context = await browser.newContext({
-        acceptDownloads: true,
-        viewport: null,
-        storageState: JSON.parse(process.env.STORAGE),
-    })
+    /*start browser */
+    const [browser, context] = await setUpBrower()
     
     // Create a new page in a pristine context. 
     const page = await context.newPage()
@@ -31,4 +18,5 @@ async function goToDownloadYourInformation(){
     // return the page, and doc
     return [browser, page, doc]
 }
+
 module.exports = goToDownloadYourInformation
