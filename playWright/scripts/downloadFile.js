@@ -1,6 +1,28 @@
 require("dotenv").config()
+const reattachFrame = require("./reattachFrame")
 
-async function downloadFile(page, doc ) {
+async function downloadFile(page) {
+  /*select child frame*/
+  // have to do this because after waiting for file to be ready by realoding the page the
+  // old doc is detach from the page
+  // like if it was a Interval ID
+  const doc =  await reattachFrame(page)
+  
+  /* setup console download reports and rename download file to recommended name */ 
+  // download file with defaul name and no duplicates
+  //custom file loader reports
+  // design for downloading 1 complete file at a time 
+  let intervalID 
+    
+  page.on('download', async download => {
+    /* wait for download file */
+    //notice when the download starts
+    console.log("going to start waiting for file")
+    // start download reports
+    intervalID = startReportDownloadStatus(download)
+
+    });
+  
   /* Go to download option */
   // go to available copies to download the data
   const avaliableCopiesTab = "li:last-child" 
@@ -8,43 +30,41 @@ async function downloadFile(page, doc ) {
   await doc.click(avaliableCopiesTab)
 
   // click download button
-  const downloadButton = "button[type=submit]"
-  await doc.click(downloadButton)
+  console.log("Starting download")
+  await doc.click("button[type=submit]")
+  let download
+  try {
+    download = await page.waitForEvent('download') // wait for download to start
+    await download.path()
 
-  // if ask then re-enter your password
-  //document.querySelector("iframe").querySelector("input[type=password]")
-  const passwordField = await doc.$("input[type=password]")
-  if(passwordField){
-      // retype password
-      await doc.type("input[type=password]", process.env.PASS)
+  } catch (error) {
+    // asked to reenter password
+    console.log("Asked to reenter password")
 
-      // submit password
-      await doc.click("td button[type=submit]")
+    // retype password
+    await doc.fill("input[type=password]", process.env.PASS)
+
+    // submit password
+    // await doc.click("td button[type=submit]")
+    download = [download] = await Promise.all([
+      page.waitForEvent('download'), // wait for download to start
+      doc.click("td button[type=submit]"),
+    ])
   }
 
-  /* wait for download file */
-  //notice when the download starts
-  console.log("going to start waiting for file")
-  // download file with defaul name and no duplicates
-  //custom file loader reports
-    // design for downloading 1 complete file at a time 
-    let intervalID 
-  page.on('download', download => {
-    startReportDownloadStatus(intervalID)
+  // save the download file has the suggested file name
+  // last report
+  const fileName = await download.suggestedFilename()
+  await download.saveAs(`./data/${ fileName }`)
 
-    // save the download file has the suggested file name
-    // last report
-        download.saveAs(`./data/${ download.suggestedFilename()}`).then(() => {
-            clearInterval(intervalID)
-            console.log(`Time ${Date().split(" ")[4]}: Finished ${download.suggestedFilename()} file download. `)
-        })
-      // delete the criptic file name
-      download.delete()
-    });
-  const download  = await page.waitForEvent('download');
-  // Wait for the download process to complete
-  // await download.saveAs("Facebook");
-  await download.path()
+  //stop download report interval
+  clearInterval(intervalID)
+
+  //report that downlolad is finished
+  console.log(`Time ${Date().split(" ")[4]}: Finished ${fileName} file download. `)
+
+  // delete the criptic file name
+  await download.delete()
 
   /* close browser */
   console.log("finished download")
@@ -52,13 +72,16 @@ async function downloadFile(page, doc ) {
 }
   // await page.evaluate(() => {debugger})
 
-function startReportDownloadStatus(intervalID) {
-// initial file report
+function startReportDownloadStatus(download) {
+  
+  // initial file report
     console.log(`Time ${Date().split(" ")[4]}: Starting ${download.suggestedFilename()} file download. `)  
-// continues waiting reports
-    intervalID = setInterval( () => { 
+  // continues waiting reports
+    const intervalID = setInterval( () => { 
         console.log(`Time ${Date().split(" ")[4]}: File is still downloading. `)
     }, 30000) 
+
+    return intervalID
 }
 
 module.exports = downloadFile
