@@ -11,7 +11,15 @@ async function createFile(doc){
     // act different if base on the button avalability 
     if(isButtonEnable){
         //button is enable
-        await createFileButton.click()
+        try {
+            await Promise.all([
+                createFileButton.click(),
+                doc.waitForSelector("//div[text()='A copy of your information is being created.']"),
+            ])
+        } catch (error) {
+            console.log("Didn't see 'A copy of your information is being created.'")
+        }
+        
     } else{
         // button is disable
         console.log("files are already being created")
