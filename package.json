@@ -4,8 +4,9 @@
   "description": "",
   "main": "FbAuto.js",
   "scripts": {
-    "test": "nodemon ./playWright/test.js",
-    "start": "nodemon ./playWright/index.js",
+    "test": "env PWDEBUG=1 nodemon ./playWright/test.js",
+    "start": "node ./playWright/index.js",
+    "startDebugger": "env PWDEBUG=1 node ./playWright/index.js",
     "debug": "nodemon index.js"
   },
   "keywords": [],
