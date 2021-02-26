@@ -9,10 +9,11 @@ const credentials = require("../credentials")
 index()
 async function index() {
   /* save credentials enter by user*/
-  // await storeCredentials()
+  await storeCredentials()
 
   /*start browser */
-  const [browser, context] = await setUpBrower(JSON.stringify(credentials)) 
+  // const [browser, context] = await setUpBrower(JSON.stringify(credentials)) 
+  const [browser, context] = await setUpBrower() 
 
   /* select correct frame */
   const [page, dataDoc] = await goToDownloadYourInformation(context)
@@ -21,10 +22,10 @@ async function index() {
   await askForFile(dataDoc)
   
   /* Wait for files*/
-  // await waitForFile(page, dataDoc)
+  await waitForFile(page, dataDoc)
 
   /* Download files*/
-  // await downloadFile(page, dataDoc)
+  await downloadFile(page)
 
   /* Close Automation */
   await browser.close()
