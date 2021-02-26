@@ -1,4 +1,4 @@
-async function goToDownloadYourInformation( context){
+async function goToDownloadYourInformation(context){
     
     // Create a new page in a pristine context. 
     const page = await context.newPage()
