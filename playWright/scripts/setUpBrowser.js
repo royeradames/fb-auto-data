@@ -6,8 +6,8 @@ async function setUpBrower(storageState = process.env.STORAGE){
     const browser = await chromium.launch({ 
         args: ["--start-maximized", "--disable-notifications",  '--disable-extensions', '--mute-audio'],
         defaultViewport: null,
-        devtools: true,
-        slowMo: 50,
+        // devtools: true,
+        // slowMo: 100,
         downloadsPath: "D:\\Lambda\\projects\\puppeteer_test\\data",
     });
     
