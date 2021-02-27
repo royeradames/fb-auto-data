@@ -5,7 +5,7 @@
   "main": "FbAuto.js",
   "scripts": {
     "test": "env PWDEBUG=1 nodemon ./playWright/test.js",
-    "start": "node ./playWright/index.js",
+    "start": "node ./playWright/index.ts",
     "startDebugger": "env PWDEBUG=1 node ./playWright/index.js",
     "debug": "nodemon index.js"
   },

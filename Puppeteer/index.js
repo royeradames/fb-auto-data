@@ -1,9 +1,9 @@
 require("dotenv").config()
 const puppeteer = require("puppeteer");
-const downloadFile = require("./scripts/downloadFile")
-const loginToFacebook = require("./scripts/loginToFacebook")
-const waitForFile = require("./scripts/waitForFile")
-const createFile = require("./scripts/createFile")
+const downloadFile = require("./downloadFile")
+const loginToFacebook = require("./loginToFacebook")
+const waitForFile = require("./waitForFile")
+const createFile = require("./createFile")
 
 automateFacebookDataGathering()
 async function automateFacebookDataGathering () {
