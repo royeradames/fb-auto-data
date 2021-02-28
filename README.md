@@ -10,3 +10,5 @@ npm run debug
 ### note
 - see the vs code terminal for conselo logs.
 - 2 tabs it's to be expected
+
+Setting up the repot is harder that it should be. Had to "git remove remote".
